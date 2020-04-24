@@ -16,15 +16,15 @@
 
 ##### 各个版本执行时间
 
-![RunTime](C:\Users\30249\mpi-exp\img\RunTime.png)
+![RunTime](./img/RunTime.png)
 
 ##### 相比于原版提升百分比
 
-![Improvement](C:\Users\30249\mpi-exp\img\Improvement.png)
+![Improvement](./img/Improvement.png)
 
 ##### 第三版比第二版在不同进程和不同数据规模下的提升
 
-![Version_2_3](C:\Users\30249\mpi-exp\img\Version_2_3.png)
+![Version_2_3](./img/Version_2_3.png)
 
 ### 总结
 
