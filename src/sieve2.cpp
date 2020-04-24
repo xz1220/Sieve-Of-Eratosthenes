@@ -84,8 +84,9 @@ int main(int argc, char *argv[])
    }
 
    /* Allocate this process's share of the array. */
-
+   // elapsed_time2=-MPI_Wtime();
    marked = (char *) malloc(size);
+   // if (!id) Time(elapsed_time2);
 
    if (marked == NULL) {
       printf("Cannot allocate enough memory\n");

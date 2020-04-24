@@ -16,6 +16,7 @@ void Time(double time){
    double time_now=time;
    time_now+=MPI_Wtime();
    printf("time_now:%10.6f\n", time_now);
+   fflush(stdout);
 }
 
 int main(int argc, char *argv[])
@@ -35,12 +36,11 @@ int main(int argc, char *argv[])
    int    proc0_size;   /* Size of proc 0's subarray */
    int    prime;        /* Current prime */
    int    size;         /* Elements in 'marked' */
-   int    prime_size;
-   char  *prime_marked;
-   int  *prime_store;
-   int    sqrt_n;
+   int    prime_store;
+   int   *prime_save;
 
-
+   // double elapsed_time2;
+   // double elapsed_time3;
 
    MPI_Init(&argc, &argv);
 
@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
    MPI_Comm_size(MPI_COMM_WORLD, &p);
    MPI_Barrier(MPI_COMM_WORLD);
    elapsed_time = -MPI_Wtime();
+   // elapsed_time2 = -MPI_Wtime();
 
    if (argc != 2) {
       if (!id) printf("Command line: %s <m>\n", argv[0]);
@@ -63,12 +64,9 @@ int main(int argc, char *argv[])
       well as the integers represented by the first and
       last array elements */
 
-   low_value = 2 + (id)*(n-1)/p;
+   low_value = 2 + id*(n-1)/p;
    high_value = 1 + (id+1)*(n-1)/p;
    size = high_value - low_value + 1;
-   prime_size=((n-1)/p)>>1;
-   //printf("数值初始化成功！");
-   //fflush(stdout);
 
    if (low_value%2==0){
      size=size>>1;
@@ -82,19 +80,20 @@ int main(int argc, char *argv[])
       not all held by process 0 */
 
    proc0_size = (n-1)/p;
-   sqrt_n= (int) sqrt((double) n);
-   //printf("sqrt_n:%d,prime_size:%d\n",sqrt_n,prime_size);
-   if ((2 + proc0_size) < sqrt_n ){
+   int sqrt_n=(int) sqrt((double) n);
+   prime_store=sqrt_n/2;
+   if ((2 + proc0_size) < sqrt_n) {
       if (!id) printf("Too many processes\n");
       MPI_Finalize();
       exit(1);
    }
 
+   // elapsed_time2= -MPI_Wtime();
    /* Allocate this process's share of the array. */
-
-   marked = (char *) malloc(size*sizeof(char));
-   prime_marked=(char *) malloc(prime_size*sizeof(char));
-   prime_store = (int *)malloc(sqrt_n*sizeof(int));
+   // elapsed_time2=-MPI_Wtime();
+   marked = (char *) malloc(size);
+   prime_save = (int *)malloc(prime_store*sizeof(int));
+   // if (!id) Time(elapsed_time2);
 
    if (marked == NULL) {
       printf("Cannot allocate enough memory\n");
@@ -102,45 +101,27 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   if (prime_marked == NULL) {
-      printf("Cannot allocate enough memory\n");
-      MPI_Finalize();
-      exit(1);
-   }
-
-   if (prime_store == NULL) {
-      printf("Cannot allocate enough memory\n");
-      MPI_Finalize();
-      exit(1);
-   }
-
-
    for (i = 0; i < size; i++) marked[i] = 0;
-   for (i = 0; i < prime_size; i++)
-      prime_marked[i] = 0;
-   for (i=0;i<sqrt_n;i++) prime_store[i]=0;
-   //printf("初始化成功");
-   //fflush(stdout);
-   int store = 0;
-   for (i=0;i<sqrt_n;i++){
-      if (prime_marked[i]==0){
-         int prime_temp=(i + 1) * 2 + 1;
-         int j;
-         for (j=i ; j < prime_size; j += prime_temp)
-         {
-            // if (j==5) printf("prime_temp:%d\n",prime_temp);
-            prime_marked[j] = 1;
+   for (i = 0; i < prime_store; i++) prime_save[i] =0;
+
+   int j=0;
+   index=0;
+   for (i=0;i<prime_store; i++){
+      if (prime_save[i]==0){
+         int prime_temp=2*i+3;
+         prime_save[j]=prime_temp;
+         j++;
+
+         for (index=i+prime_temp;index<prime_store;index+=prime_temp){
+            prime_save[index]=1;
          }
-         prime_store[store] = prime_temp;
-         store++;
-         //printf("%d\n", prime_temp);
       }
    }
+   // if (!id) Time(elapsed_time2);
 
-   // if (!id) Time(elapsed_time);
-
-   int j = 0;
-   for (prime = prime_store[j]; prime * prime <= n; prime = prime_store[++j])
+   // elapsed_time3= -MPI_Wtime();
+   index = 0;
+   for (prime = prime_save[index]; index<j; prime = prime_save[++index])
    {
       if (prime * prime > low_value)
         first = (prime * prime - low_value);
@@ -152,6 +133,10 @@ int main(int argc, char *argv[])
       first=first>>1;
       for (i = first; i < size; i += prime) marked[i] = 1;
    }
+   // if (!id) {
+   //    Time(elapsed_time3);
+   //    printf("j:%d",j);
+   // }
 //     for (i=0;i<store;i++){
 //        printf("id:%d, prime_store[%d]:%d\n",id,i,prime_store[i]);
 //    }
