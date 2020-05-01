@@ -57,8 +57,20 @@ int main(int argc, char *argv[])
       well as the integers represented by the first and
       last array elements */
 
-   low_value = 2 + id*(n-1)/p;
-   high_value = 1 + (id+1)*(n-1)/p;
+   // low_value = 2 + id*(n-1)/p;
+   // high_value = 1 + (id+1)*(n-1)/p;
+   low_value=0;
+   int temp=(n-1)/p;
+   for (i=0;i<id;i++){
+      low_value+=temp;
+   }
+   low_value+=2;
+
+   if((n-low_value)>(n-1)/p){
+      high_value=low_value+temp-1;
+   }else{
+      high_value = n;
+   }
    size = high_value - low_value + 1;
 
    /* Bail out if all the primes used for sieving are
@@ -84,7 +96,6 @@ int main(int argc, char *argv[])
 
    for (i = 0; i < size; i++) marked[i] = 0;
    
-   if (!id) Time(elapsed_time);
 
    if (!id) index = 0;
    prime = 2;

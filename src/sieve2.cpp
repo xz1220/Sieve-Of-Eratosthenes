@@ -59,10 +59,28 @@ int main(int argc, char *argv[])
    /* Figure out this process's share of the array, as
       well as the integers represented by the first and
       last array elements */
+   low_value=0;
+   int temp=(n-1)/p;
+   for (i=0;i<id;i++){
+      low_value+=temp;
+   }
+   low_value+=2;
 
-   low_value = 2 + id*(n-1)/p;
-   high_value = 1 + (id+1)*(n-1)/p;
+   if((n-low_value)>(n-1)/p){
+      high_value=low_value+temp-1;
+   }else{
+      high_value = n;
+   }
+
+
    size = high_value - low_value + 1;
+
+   // if (id==0) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // if (id==1) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // if (id==2) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // if (id==3) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // fflush(stdout);
+
 
    if (low_value%2==0){
      size=size>>1;
@@ -71,6 +89,9 @@ int main(int argc, char *argv[])
      size=size%2+size>>1;
    }
 
+
+   // if (id==2) printf("step1,size:%d\n",size);
+   // fflush(stdout); 
 
    /* Bail out if all the primes used for sieving are
       not all held by process 0 */
@@ -97,6 +118,7 @@ int main(int argc, char *argv[])
    for (i = 0; i < size; i++) marked[i] = 0;
 
    // if (!id) Time(elapsed_time);
+   
 
    if (!id) index = 0;
    prime = 3;
@@ -117,15 +139,19 @@ int main(int argc, char *argv[])
       if (p > 1) MPI_Bcast(&prime,  1, MPI_INT, 0, MPI_COMM_WORLD);
    } while(prime * prime <= n);
 
+
    count = 0;
    for (i = 0; i < size; i++)
       if (!marked[i]) count++;
+
    
    if (p > 1) MPI_Reduce(&count, &global_count, 1, MPI_INT, MPI_SUM,
       0, MPI_COMM_WORLD);
    else global_count=count;
    /* Stop the timer */
-
+   
+   // if (!id) printf("finished\n");
+   // fflush(stdout); 
    elapsed_time += MPI_Wtime();
 
 

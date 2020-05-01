@@ -64,8 +64,20 @@ int main(int argc, char *argv[])
       well as the integers represented by the first and
       last array elements */
 
-   low_value = 2 + id*(n-1)/p;
-   high_value = 1 + (id+1)*(n-1)/p;
+   // low_value = 2 + id*(n-1)/p;
+   // high_value = 1 + (id+1)*(n-1)/p;
+   low_value=0;
+   int temp=(n-1)/p;
+   for (i=0;i<id;i++){
+      low_value+=temp;
+   }
+   low_value+=2;
+
+   if((n-low_value)>(n-1)/p){
+      high_value=low_value+temp-1;
+   }else{
+      high_value = n;
+   }
    size = high_value - low_value + 1;
 
    if (low_value%2==0){

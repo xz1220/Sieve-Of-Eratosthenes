@@ -12,7 +12,7 @@ def Collect_Runing_Data(processes, number, version=1,runtime=5):
     
     # 收集参数
     for i in range(runtime):
-        result=os.popen('mpiexec -n %d .\sieve%d.exe %d'%(processes,version,number)).read()
+        result=os.popen('mpiexec -n %d ..\\bin\sieve%d.exe %d'%(processes,version,number)).read()
         # print(result)
         time=float(result[len(result)-10:])
         # print(time)
@@ -41,10 +41,10 @@ def main():
     #     print("Number is error!")
     #     raise
 
-    RunTime=np.zeros([4,16])
+    RunTime=np.zeros([4,21])
     for i in range(4):
-        for j in range(16):
-            RunTime[i][j]= Collect_Runing_Data(j+1,100000000,i+1,20)
+        for j in range(21):
+            RunTime[i][j]= Collect_Runing_Data(j+1,1000000000,i+1,3)
     # # print("测试版本1和版本2 之间的性能差异，在number过大的时候，性能提升明显")
     # RunTime[0][0] = Collect_Runing_Data(1,100000000,1)   # average: 5.876134
     # # Collect_Runing_Data(1,100000000,2)   # average: 5.584640
@@ -186,20 +186,34 @@ def main():
     # RunTime[3][15] = Collect_Runing_Data(16,100000000,4)
 
 
-
-    np.save("./Data/RunTime.npy",RunTime)
-
+    try:
+        np.save("../Data/RunTime_1e9_p21.npy",RunTime)
+    except:
+        np.save("temp.npy",RunTime)
 def Version_2_3():
     RunTime=np.zeros([5,21])
 
     for i in range(5):
         for j in range(21):
             n=1000000000/(10**(i+1))
-            data1 = Collect_Runing_Data(j+1,n,2,2**(i+1)) 
-            data2 = Collect_Runing_Data(j+1,n,3,2**(i+1))
+            data1 = Collect_Runing_Data(j+1,n,2,20) 
+            data2 = Collect_Runing_Data(j+1,n,3,20)
             RunTime[i][j] =(data1-data2)/data1
 
-    np.save("./Data/Version_2_3.npy",RunTime)
+    np.save("../Data/Version_2_3.npy",RunTime)
+
+def readTxt():
+    with open("temp.txt",'r') as f:
+        RunTime=np.zeros([4,16])
+        for i in range(64):
+            x=int(i/16)
+            y=i%16
+            string=f.readline()
+            RunTime[x][y]=float(string[:-2])
+    try:
+        np.save("../Data/RunTime_1e9.npy",RunTime)
+    except:
+        np.save("temp.npy",RunTime)
 
 
 if __name__ == "__main__":
