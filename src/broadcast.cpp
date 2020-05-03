@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
    int    proc0_size;   /* Size of proc 0's subarray */
    int    prime;        /* Current prime */
    int    size;         /* Elements in 'marked' */
-
+   double elapsed_time2;        
    MPI_Init(&argc, &argv);
 
    /* Start the timer */
@@ -59,18 +59,7 @@ int main(int argc, char *argv[])
 
    low_value = 2 + id*((n-1)/p);
    high_value = 1 + (id+1)*((n-1)/p);
-   // low_value=0;
-   // int temp=(n-1)/p;
-   // for (i=0;i<id;i++){
-   //    low_value+=temp;
-   // }
-   // low_value+=2;
 
-   // if((n-low_value)>(n-1)/p){
-   //    high_value=low_value+temp-1;
-   // }else{
-   //    high_value = n;
-   // }
    size = high_value - low_value + 1;
 
    /* Bail out if all the primes used for sieving are
@@ -96,6 +85,8 @@ int main(int argc, char *argv[])
 
    for (i = 0; i < size; i++) marked[i] = 0;
    
+   double count_time;
+   int times=0;        
 
    if (!id) index = 0;
    prime = 2;
@@ -111,8 +102,20 @@ int main(int argc, char *argv[])
          while (marked[++index]);
          prime = index + 2;
       }
+      if (!id){
+         elapsed_time2=0;
+         elapsed_time2 = -MPI_Wtime();
+      }
+
       if (p > 1) MPI_Bcast(&prime,  1, MPI_INT, 0, MPI_COMM_WORLD);
+      if (!id){
+         elapsed_time2+= MPI_Wtime();
+         count_time+=elapsed_time2;
+         times+=1;
+      }
    } while(prime * prime <= n);
+
+   if (!id) printf("BroadcastTimes:%d,BroadcastCost:%10.6f\n",times,count_time);
 
    count = 0;
    for (i = 0; i < size; i++)

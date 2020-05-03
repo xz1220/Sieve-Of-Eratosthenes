@@ -64,21 +64,21 @@ int main(int argc, char *argv[])
       well as the integers represented by the first and
       last array elements */
 
-   // low_value = 2 + id*(n-1)/p;
-   // high_value = 1 + (id+1)*(n-1)/p;
-   low_value=0;
-   int temp=(n-1)/p;
-   for (i=0;i<id;i++){
-      low_value+=temp;
-   }
-   low_value+=2;
+   low_value = 2 + id*(n-1)/p;
+   high_value = 1 + (id+1)*(n-1)/p;
+   // low_value=0;
+   // int temp=(n-1)/p;
+   // for (i=0;i<id;i++){
+   //    low_value+=temp;
+   // }
+   // low_value+=2;
 
-   if((n-low_value)>(n-1)/p){
-      high_value=low_value+temp-1;
-   }else{
-      high_value = n;
-   }
-   size = high_value - low_value + 1;
+   // if((n-low_value)>(n-1)/p){
+   //    high_value=low_value+temp-1;
+   // }else{
+   //    high_value = n;
+   // }
+   // size = high_value - low_value + 1;
 
    if (low_value%2==0){
      size=size>>1;
@@ -132,7 +132,8 @@ int main(int argc, char *argv[])
    // if (!id) Time(elapsed_time2);
 
    // elapsed_time3= -MPI_Wtime();
-   int cacheline = (1<<12)*6;
+   // int cacheline = (1<<12)*6;
+   int cacheline = 1<<15;
    int number,multi_cacheline=0;
    int high_value_temp;
    for (number = 0; number < size / cacheline + 1;number++){

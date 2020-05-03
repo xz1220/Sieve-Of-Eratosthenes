@@ -64,28 +64,24 @@ int main(int argc, char *argv[])
       well as the integers represented by the first and
       last array elements */
 
-   // low_value = 2 + id*(n-1)/p;
-   // high_value = 1 + (id+1)*(n-1)/p;
-   low_value=0;
-   int temp=(n-1)/p;
-   for (i=0;i<id;i++){
-      low_value+=temp;
-   }
-   low_value+=2;
+   low_value = 2 + id*((n-1)/p);
+   high_value = 1 + (id+1)*((n-1)/p);
+   // low_value=0;
+   // int temp=(n-1)/p;
+   // for (i=0;i<id;i++){
+   //    low_value+=temp;
+   // }
+   // low_value+=2;
 
-   if((n-low_value)>(n-1)/p){
-      high_value=low_value+temp-1;
-   }else{
-      high_value = n;
-   }
-   size = high_value - low_value + 1;
+   // if((n-low_value)>(n-1)/p){
+   //    high_value=low_value+temp-1;
+   // }else{
+   //    high_value = n;
+   // }
+   if (low_value%2==0) low_value+=1;
+   if (high_value%2==0) high_value-=1;
 
-   if (low_value%2==0){
-     size=size>>1;
-     low_value+=1;
-   }else{
-     size=size%2+size>>1;
-   }
+   size = (high_value - low_value)/2 + 1;
 
 
    /* Bail out if all the primes used for sieving are

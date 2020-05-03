@@ -59,21 +59,22 @@ int main(int argc, char *argv[])
    /* Figure out this process's share of the array, as
       well as the integers represented by the first and
       last array elements */
-   low_value=0;
-   int temp=(n-1)/p;
-   for (i=0;i<id;i++){
-      low_value+=temp;
-   }
-   low_value+=2;
+   // low_value=0;
+   // int temp=(n-1)/p;
+   // for (i=0;i<id;i++){
+   //    low_value+=temp;
+   // }
+   // low_value+=2;
 
-   if((n-low_value)>(n-1)/p){
-      high_value=low_value+temp-1;
-   }else{
-      high_value = n;
-   }
+   // if((n-low_value)>(n-1)/p){
+   //    high_value=low_value+temp-1;
+   // }else{
+   //    high_value = n;
+   // }
+   low_value = 2 + id*((n-1)/p);
+   high_value = 1 + (id+1)*((n-1)/p);
 
-
-   size = high_value - low_value + 1;
+   // size = high_value - low_value + 1;
 
    // if (id==0) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
    // if (id==1) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
@@ -82,12 +83,10 @@ int main(int argc, char *argv[])
    // fflush(stdout);
 
 
-   if (low_value%2==0){
-     size=size>>1;
-     low_value+=1;
-   }else{
-     size=size%2+size>>1;
-   }
+   if (low_value%2==0) low_value+=1;
+   if (high_value%2==0) high_value-=1;
+
+   size = (high_value - low_value)/2 + 1;
 
 
    // if (id==2) printf("step1,size:%d\n",size);
