@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
       well as the integers represented by the first and
       last array elements */
 
-   low_value = 2 + id*(n-1)/p;
-   high_value = 1 + (id+1)*(n-1)/p;
+   low_value = 2 + id*((n-1)/p);
+   high_value = 1 + (id+1)*((n-1)/p);
    // low_value=0;
    // int temp=(n-1)/p;
    // for (i=0;i<id;i++){
@@ -78,14 +78,10 @@ int main(int argc, char *argv[])
    // }else{
    //    high_value = n;
    // }
-   // size = high_value - low_value + 1;
+   if (low_value%2==0) low_value+=1;
+   if (high_value%2==0) high_value-=1;
 
-   if (low_value%2==0){
-     size=size>>1;
-     low_value+=1;
-   }else{
-     size=size%2+size>>1;
-   }
+   size = (high_value - low_value)/2 + 1;
 
 
    /* Bail out if all the primes used for sieving are
@@ -132,8 +128,8 @@ int main(int argc, char *argv[])
    // if (!id) Time(elapsed_time2);
 
    // elapsed_time3= -MPI_Wtime();
-   // int cacheline = (1<<12)*6;
-   int cacheline = 1<<15;
+   int cacheline = (1<<12)*8;
+   // int cacheline = 1<<15;
    int number,multi_cacheline=0;
    int high_value_temp;
    for (number = 0; number < size / cacheline + 1;number++){
@@ -169,7 +165,7 @@ int main(int argc, char *argv[])
       // }
       // if (p > 1) MPI_Bcast(&prime,  1, MPI_INT, 0, MPI_COMM_WORLD);
       // } while(prime * prime <= n);
-      count = 0;
+   count = 0;
    for (i = 0; i < size; i++)
       if (!marked[i]) count++;
 

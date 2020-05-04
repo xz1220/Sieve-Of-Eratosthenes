@@ -16,7 +16,6 @@ void Time(double time){
    double time_now=time;
    time_now+=MPI_Wtime();
    printf("time_now:%10.6f\n", time_now);
-   fflush(stdout);
 }
 
 int main(int argc, char *argv[])
@@ -36,11 +35,8 @@ int main(int argc, char *argv[])
    int    proc0_size;   /* Size of proc 0's subarray */
    int    prime;        /* Current prime */
    int    size;         /* Elements in 'marked' */
-   int    prime_store;
-   int   *prime_save;
 
    // double elapsed_time2;
-   // double elapsed_time3;
 
    MPI_Init(&argc, &argv);
 
@@ -63,9 +59,6 @@ int main(int argc, char *argv[])
    /* Figure out this process's share of the array, as
       well as the integers represented by the first and
       last array elements */
-
-   low_value = 2 + id*((n-1)/p);
-   high_value = 1 + (id+1)*((n-1)/p);
    // low_value=0;
    // int temp=(n-1)/p;
    // for (i=0;i<id;i++){
@@ -78,29 +71,43 @@ int main(int argc, char *argv[])
    // }else{
    //    high_value = n;
    // }
-   if (low_value%2==0) low_value+=1;
-   if (high_value%2==0) high_value-=1;
+   low_value = 2 + id*((n-1)/p);
+   high_value = 1 + (id+1)*((n-1)/p);
 
-   size = (high_value - low_value)/2 + 1;
+   size = high_value - low_value + 1;
 
+   // if (id==0) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // if (id==1) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // if (id==2) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // if (id==3) printf("id:%d , n:%d , high_value:%d , low_value:%d , size:%d\n",id,n,high_value,low_value,size);
+   // fflush(stdout);
+
+
+   if (low_value%2==0){
+     size=size>>1;
+     low_value+=1;
+   }else{
+     size=size%2+size>>1;
+   }
+
+
+   // if (id==2) printf("step1,size:%d\n",size);
+   // fflush(stdout); 
 
    /* Bail out if all the primes used for sieving are
       not all held by process 0 */
 
    proc0_size = (n-1)/p;
-   int sqrt_n=(int) sqrt((double) n);
-   prime_store=sqrt_n/2;
-   if ((2 + proc0_size) < sqrt_n) {
+
+   if ((2 + proc0_size) < (int) sqrt((double) n)) {
       if (!id) printf("Too many processes\n");
       MPI_Finalize();
       exit(1);
    }
 
-   // elapsed_time2= -MPI_Wtime();
    /* Allocate this process's share of the array. */
    // elapsed_time2=-MPI_Wtime();
    marked = (char *) malloc(size);
-   prime_save = (int *)malloc(prime_store*sizeof(int));
    // if (!id) Time(elapsed_time2);
 
    if (marked == NULL) {
@@ -110,72 +117,42 @@ int main(int argc, char *argv[])
    }
 
    for (i = 0; i < size; i++) marked[i] = 0;
-   for (i = 0; i < prime_store; i++) prime_save[i] =0;
 
-   int j=0;
-   index=0;
-   for (i=0;i<prime_store; i++){
-      if (prime_save[i]==0){
-         int prime_temp=2*i+3;
-         prime_save[j]=prime_temp;
-         j++;
+   // if (!id) Time(elapsed_time);
+   
 
-         for (index=i+prime_temp;index<prime_store;index+=prime_temp){
-            prime_save[index]=1;
-         }
+   if (!id) index = 0;
+   prime = 3;
+   do {
+      if (prime * prime > low_value)
+        first = (prime * prime - low_value);
+      else {
+         if (!(low_value % prime)) first = 0;
+         else first = (prime - (low_value % prime));
       }
-   }
-   // if (!id) Time(elapsed_time2);
-
-   double elapsed_time3= -MPI_Wtime();
-   // int cacheline = (1<<12)*6;
-   int cacheline = 1<<15;
-   int number,multi_cacheline=0;
-   int high_value_temp;
-   for (number = 0; number < size / cacheline + 1;number++){
-      index = 0;
-      high_value_temp=(multi_cacheline + cacheline<size)?(number+1)*cacheline:size;
-      // if (!id) printf("low_temp %d   high_temp : %d\n",low_value,high_value_temp);
-      // fflush(stdout);
-      for (prime = prime_save[index]; index<j; prime = prime_save[++index])
-      {
-         if (prime * prime > low_value)
-         first = (prime * prime - low_value);
-         else {
-            if (!(low_value % prime)) first = 0;
-            else first = (prime - (low_value % prime));
-         }
-         if (first%2) first+=prime;
-         first=first>>1;
-         // if (!id) printf("first %d   id : %d\n",first,id);
-         // fflush(stdout);
-         for (i = first+multi_cacheline; i < high_value_temp; i += prime) {
-            marked[i] = 1;
-            // if (!id) printf("marked %d   id : %d\n",i,id);
-            // fflush(stdout);
-         }
+      if (first%2) first+=prime;
+      first=first>>1;
+      for (i = first; i < size; i += prime) marked[i] = 1;
+      if (!id) {
+         while (marked[++index]);
+         prime = (index+1)*2+1;
       }
-      multi_cacheline+=cacheline;
-      low_value += cacheline*2;
-   }
-   if (!id) Time(elapsed_time3);
-      // if (!id) {
-      //    while (marked[++index]);
-      //    prime = (index+1)*2+1;
-      // }
-      // if (p > 1) MPI_Bcast(&prime,  1, MPI_INT, 0, MPI_COMM_WORLD);
-      // } while(prime * prime <= n);
+      if (p > 1) MPI_Bcast(&prime,  1, MPI_INT, 0, MPI_COMM_WORLD);
+   } while(prime * prime <= n);
+
+
    count = 0;
    for (i = 0; i < size; i++)
       if (!marked[i]) count++;
+
    
-   double elapsed_time4=-MPI_Wtime();
    if (p > 1) MPI_Reduce(&count, &global_count, 1, MPI_INT, MPI_SUM,
       0, MPI_COMM_WORLD);
    else global_count=count;
    /* Stop the timer */
-   if (!id) Time(elapsed_time4);
-
+   
+   // if (!id) printf("finished\n");
+   // fflush(stdout); 
    elapsed_time += MPI_Wtime();
 
 
